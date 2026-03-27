@@ -22,6 +22,7 @@ public class AudioAsset implements AutoCloseable {
     protected static final Logger logger = new Logger(TAG);
 
     private final ArrayList<AudioDispatcher> audioList;
+    private AssetFileDescriptor assetFileDescriptor;
     protected int playIndex = 0;
     protected final NativeAudio owner;
     protected AudioCompletionListener completionListener;
@@ -52,6 +53,7 @@ public class AudioAsset implements AutoCloseable {
         audioList = new ArrayList<>();
         this.owner = owner;
         this.assetId = assetId;
+        this.assetFileDescriptor = assetFileDescriptor;
         this.fadeExecutor = Executors.newSingleThreadScheduledExecutor();
 
         if (audioChannelNum < 0) {
@@ -595,6 +597,14 @@ public class AudioAsset implements AutoCloseable {
     public void close() {
         if (fadeExecutor != null && !fadeExecutor.isShutdown()) {
             fadeExecutor.shutdown();
+        }
+        if (assetFileDescriptor != null) {
+            try {
+                assetFileDescriptor.close();
+            } catch (Exception e) {
+                Log.e(TAG, "Error closing AssetFileDescriptor", e);
+            }
+            assetFileDescriptor = null;
         }
     }
 
