@@ -52,6 +52,7 @@
     "build:scripts": "tsc -p scripts/tsconfig.json",
     "clean": "rimraf ./dist",
     "watch": "tsc --watch",
+    "prepare": "npm run build",
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
