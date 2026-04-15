@@ -59,7 +59,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -104,7 +103,7 @@ public class NativeAudio extends Plugin implements AudioManager.OnAudioFocusChan
     private static final int MAX_NOTIFICATION_ARTWORK_SIZE = 512;
 
     // Track playOnce assets for automatic cleanup
-    private Set<String> playOnceAssets = new HashSet<>();
+    private Set<String> playOnceAssets = ConcurrentHashMap.newKeySet();
 
     // Background playback support
     private boolean backgroundPlayback = false;
@@ -301,14 +300,14 @@ public class NativeAudio extends Plugin implements AudioManager.OnAudioFocusChan
      */
     @PluginMethod
     public void preload(final PluginCall call) {
-        this.getActivity().runOnUiThread(
+        new Thread(
             new Runnable() {
                 @Override
                 public void run() {
                     preloadAsset(call);
                 }
             }
-        );
+        ).start();
     }
 
     /**
@@ -333,7 +332,7 @@ public class NativeAudio extends Plugin implements AudioManager.OnAudioFocusChan
      */
     @PluginMethod
     public void playOnce(final PluginCall call) {
-        this.getActivity().runOnUiThread(
+        new Thread(
             new Runnable() {
                 /**
                  * Preloads a temporary audio asset, optionally plays it one time, and schedules automatic cleanup when playback completes.
@@ -485,7 +484,7 @@ public class NativeAudio extends Plugin implements AudioManager.OnAudioFocusChan
                     }
                 }
             }
-        );
+        ).start();
     }
 
     /**
