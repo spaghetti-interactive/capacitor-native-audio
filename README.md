@@ -1,6 +1,6 @@
 # Native audio
 
- <a href="https://capgo.app/"><img src='https://raw.githubusercontent.com/Cap-go/capgo/main/assets/capgo_banner.png' alt='Capgo - Instant updates for capacitor'/></a>
+<a href="https://capgo.app/"><img src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-native-audio" alt="Capgo - Instant updates for Capacitor" /></a>
 
 <div align="center">
   <h2><a href="https://capgo.app/?ref=plugin_native_audio"> ➡️ Get Instant updates for your App with Capgo</a></h2>
@@ -249,6 +249,10 @@ The media control buttons automatically handle:
 - **Rewind 15s** (Android only) - Skips backward 15 seconds
 - **Forward 15s** (Android only) - Skips forward 15 seconds
 
+If you need to keep your app UI synchronized with Android notification or lock-screen controls,
+listen for the `playbackState` event. It emits the `assetId`, resolved state, reason, and the latest
+position/duration snapshot after remote transport actions.
+
 **Android Notification Controls:**
 On Android, the notification displays three action buttons in this order:
 1. ⏪ **Rewind 15s** - Skip backward 15 seconds
@@ -423,15 +427,15 @@ await NativeAudio.stop({ assetId });
 
 ## Example app
 
-This repository now ships with an interactive Capacitor project under `example/` that exercises the main APIs on web, iOS, and Android shells.
+This repository now ships with an interactive Capacitor project under `example-app/` that exercises the main APIs on web, iOS, and Android shells.
 
 ```bash
-cd example
-npm install
-npm run dev      # start the web playground
-npm run sync     # optional: generate iOS/Android platforms
-npm run ios      # open the iOS shell app
-npm run android  # open the Android shell app
+cd example-app
+bun install
+bun run dev      # start the web playground
+bun run sync     # optional: generate iOS/Android platforms
+bun run ios      # open the iOS shell app
+bun run android  # open the Android shell app
 ```
 
 The UI demonstrates local asset preloading, remote streaming, playback controls, looping, live position updates, and cache clearing for remote audio.
@@ -921,6 +925,28 @@ return {@link CurrentTimeEvent}
 --------------------
 
 
+### addListener('playbackState', ...)
+
+```typescript
+addListener(eventName: 'playbackState', listenerFunc: PlaybackStateListener) => Promise<PluginListenerHandle>
+```
+
+Listen for playback state changes, including notification and lock-screen transport controls.
+Emitted by Android and iOS. The current Web implementation does not emit this event.
+
+| Param              | Type                                                                    |
+| ------------------ | ----------------------------------------------------------------------- |
+| **`eventName`**    | <code>'playbackState'</code>                                            |
+| **`listenerFunc`** | <code><a href="#playbackstatelistener">PlaybackStateListener</a></code> |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+**Since:** 8.3.15
+return {@link PlaybackStateEvent}
+
+--------------------
+
+
 ### clearCache()
 
 ```typescript
@@ -1139,6 +1165,18 @@ behavior details about audio mixing on iOS.
 | **`assetId`**     | <code>string</code> | Asset Id of the audio                | 6.5.0 |
 
 
+#### PlaybackStateEvent
+
+| Prop              | Type                                                              | Description                                                                            |
+| ----------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| **`assetId`**     | <code>string</code>                                               | Asset Id of the audio                                                                  |
+| **`state`**       | <code><a href="#playbackstatevalue">PlaybackStateValue</a></code> | Resolved playback state after a local or remote transport action.                      |
+| **`reason`**      | <code>string</code>                                               | Reason for the state change, for example `play`, `pause`, `remotePlay`, or `complete`. |
+| **`isPlaying`**   | <code>boolean</code>                                              | Whether the asset is currently playing.                                                |
+| **`currentTime`** | <code>number</code>                                               | Current playback position in seconds when available.                                   |
+| **`duration`**    | <code>number</code>                                               | Total playback duration in seconds when available.                                     |
+
+
 ### Type Aliases
 
 
@@ -1158,6 +1196,16 @@ Construct a type with a set of properties K of type T
 
 <code>(state: <a href="#currenttimeevent">CurrentTimeEvent</a>): void</code>
 
+
+#### PlaybackStateListener
+
+<code>(state: <a href="#playbackstateevent">PlaybackStateEvent</a>): void</code>
+
+
+#### PlaybackStateValue
+
+<code>'playing' | 'paused' | 'stopped'</code>
+
 </docgen-api>
 
 ## Development and Testing
@@ -1165,15 +1213,17 @@ Construct a type with a set of properties K of type T
 ### Building
 
 ```bash
-npm run build
+bun run build
 ```
 
 ### Testing
 
-This plugin includes a comprehensive test suite for iOS:
+This plugin includes native unit coverage plus Maestro smoke tests for the example app on iOS and Android:
 
-1. Open the iOS project in Xcode: `npx cap open ios`
-2. Navigate to the `PluginTests` directory
-3. Run tests using Product > Test (⌘+U)
+1. Run plugin verification with `bun run verify`
+2. Build and sync the example app from `example-app/`
+3. With a booted device and the shell app installed, run the Android smoke flow with `bun run test:e2e:android`
+4. With a booted simulator and the shell app installed, run the iOS smoke flow with `bun run test:e2e:ios`
+5. For native unit tests in Xcode, open the example app iOS project with `cd example-app && bunx cap open ios` and run Product > Test (⌘+U)
 
-The tests cover core functionality including audio asset initialization, playback, volume control, fade effects, and more. See the [test documentation](ios/PluginTests/README.md) for more details.
+The tests cover core functionality including audio asset initialization, playback, volume control, fade effects, and smoke-tested example app playback flows. See the [test documentation](ios/Tests/README.md) for more details.
